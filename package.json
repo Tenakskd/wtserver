@@ -1,7 +1,7 @@
 {
   "name": "わかめtube",
   "version": "2.6.8",
-  "main": "server.js",
+  "main": "functions/server.js",
   "license": "CC-BY-4.0",
   "dependencies": {
     "express": "^5.1.0",
