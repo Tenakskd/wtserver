@@ -4,12 +4,12 @@
   "main": "server.js",
   "license": "CC-BY-4.0",
   "dependencies": {
-    "ejs": "^3.1.10",
     "express": "^4.17.1",
     "axios": "^1.7.7",
     "cors": "latest",
     "jsonpath": "^1.0.0",
-    "compression": "^1.7.4"
+    "compression": "^1.7.4",
+    "serverless-http": "^3.0.1"
   },
   "description": "わかめ",
   "engines": {
