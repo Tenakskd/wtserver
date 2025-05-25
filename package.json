@@ -1,5 +1,5 @@
 {
-  "name": "わかめtube",
+  "name": "wakame-tube",
   "version": "2.6.8",
   "main": "netlify/functions/server.js",
   "license": "CC-BY-4.0",
