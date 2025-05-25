@@ -17,7 +17,7 @@ const MAX_TIME = 10000;
 
 async function getapis() {
     try {
-        const response = await axios.get('https://wtserver.glitch.me/apis');
+        const response = await axios.get('https://github.com/Tenakskd/ytserver/raw/refs/heads/main/instances.json');
         apis = response.data;
         console.log('データを取得しました:', apis);
     } catch (error) {
