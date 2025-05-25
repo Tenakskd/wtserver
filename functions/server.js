@@ -1,28 +1,13 @@
-"use strict";
-const express = require("express");
-let app = express();
-const cluster = require("cluster");
-const os = require("os");
-const compression = require("compression");
-const numClusters = os.cpus().length;
-if (cluster.isMaster) {
-  for (let i = 0; i < numClusters; i++) {
-    cluster.fork();
-  }
-  cluster.on("exit", (worker, code, signal) => {
-    cluster.fork();
-  });
-} else {
-  app.use(compression());
-  app.listen(3000, () => {
-    console.log(`Worker ${process.pid} started`);
-  });
-}
-
+"const express = require("express");
+const serverless = require("serverless-http");
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const compression = require('compression');
 
+const app = express();
+
+app.use(compression());
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -56,23 +41,16 @@ async function ggvideo(videoId) {
   for (const instance of apis) {
     try {
       const response = await axios.get(`${instance}/api/v1/videos/${videoId}`, { timeout: MAX_API_WAIT_TIME });
-      console.log(`使ってみたURL: ${instance}/api/v1/videos/${videoId}`);
-      
       if (response.data && response.data.formatStreams) {
         return response.data; 
-      } else {
-        console.error(`formatStreamsが存在しない: ${instance}`);
       }
     } catch (error) {
-      console.error(`エラーだよ: ${instance} - ${error.message}`);
       instanceErrors.add(instance);
     }
-
     if (Date.now() - startTime >= MAX_TIME) {
       throw new Error("接続がタイムアウトしました");
     }
   }
-
   throw new Error("動画を取得する方法が見つかりません");
 }
 
@@ -97,12 +75,10 @@ app.get(['/api/:id', '/api/login/:id'], async (req, res) => {
   const videoId = req.params.id;
   try {
     const videoInfo = await ggvideo(videoId);
-    
     const formatStreams = videoInfo.formatStreams || [];
     const streamUrl = formatStreams.reverse().map(stream => stream.url)[0];
-    
     const audioStreams = videoInfo.adaptiveFormats || [];
-    
+
     let highstreamUrl = audioStreams
       .filter(stream => stream.container === 'webm' && stream.resolution === '1080p')
       .map(stream => stream.url)[0];
@@ -115,7 +91,7 @@ app.get(['/api/:id', '/api/login/:id'], async (req, res) => {
         url: stream.url,
         resolution: stream.resolution,
       }));
-    
+
     const templateData = {
       stream_url: streamUrl,
       highstreamUrl: highstreamUrl,
@@ -130,10 +106,9 @@ app.get(['/api/:id', '/api/login/:id'], async (req, res) => {
       likeCount: videoInfo.likeCount,
       streamUrls: streamUrls
     };
-          
     res.json(templateData);
   } catch (error) {
-        res.status(500).render('matte', { 
+    res.status(500).json({ 
       videoId, 
       error: '動画を取得できません', 
       details: error.message 
@@ -151,3 +126,4 @@ function streamurlchange(url) {
     return url;
   }
 }
+module.exports.handler = serverless(app);
